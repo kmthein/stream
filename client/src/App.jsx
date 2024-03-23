@@ -10,6 +10,7 @@ import LikeVideo from "./pages/LikeVideo";
 import SearchResult from "./pages/SearchResult";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import UploadVideo from "./pages/UploadVideo";
 
 const App = () => {
   const router = createBrowserRouter([
@@ -53,6 +54,10 @@ const App = () => {
           path: "/register",
           element: <Register />
         },
+        {
+          path: "/upload",
+          element: <UploadVideo />
+        }
       ]
     },
   ]);

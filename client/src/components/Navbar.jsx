@@ -47,21 +47,6 @@ import {
 import axios from "axios";
 import { setAccessToken, setMyChannel } from "@/store/slices/userSlice";
 import { RiVideoAddLine } from "react-icons/ri";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@radix-ui/react-dropdown-menu";
-import { ErrorMessage, Field, Form, Formik } from "formik";
-import ErrorStyle from "./auth/ErrorStyle";
-import { BiImageAdd } from "react-icons/bi";
-import { FaTrashAlt } from "react-icons/fa";
-import { MdVideoCall } from "react-icons/md";
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -104,50 +89,7 @@ const Navbar = () => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const thumbnailsRef = useRef();
-  const videoRef = useRef();
 
-  const [previewImages, setPreviewImages] = useState([]);
-  const [images, setImages] = useState([]);
-  const [imgCount, setImgCount] = useState(0);
-
-  const handleThumbnailsChange = (event, setFieldValue) => {
-    const selectedImages = event.target.files;
-    const selectedImagesArray = Array.from(selectedImages);
-    setImages((prev) => [...prev, ...selectedImagesArray]);
-    setImgCount((prev) => prev + selectedImagesArray.length);
-
-    const previewImagesArray = selectedImagesArray.map((img) => {
-      return URL.createObjectURL(img);
-    });
-    setPreviewImages((prev) => prev.concat(previewImagesArray));
-  };
-
-  const [previewVideo, setPreviewVideo] = useState([]);
-
-  const handleVideoChange = (event, setFieldValue) => {
-    const selectedVideo = event.target.files[0];
-    console.log(selectedVideo);
-    if(selectedVideo) {
-      setPreviewVideo(URL.createObjectURL(selectedVideo));
-      console.log(previewVideo);
-    }
-
-  }
-
-  const deleteHandler = (img) => {
-    const indexToDelete = previewImages.findIndex((i) => i == img);
-
-    if (indexToDelete != -1) {
-      const updatedSelectedImg = [...images];
-      updatedSelectedImg.splice(indexToDelete, 1);
-
-      setImgCount((prev) => prev - 1);
-      setImages(updatedSelectedImg);
-      setPreviewImages(previewImages.filter((i) => i != img));
-      URL.revokeObjectURL(img);
-    }
-  };
 
   return (
     <div className="flex px-4 w-full justify-between py-3 items-center">
@@ -178,125 +120,11 @@ const Navbar = () => {
         </form>
       </div>
       <div className="flex items-center gap-5 ml-[45%] md:ml-[75%] xl:ml-0">
-        <Dialog>
-          <DialogTrigger asChild>
             {user && (
-              <RiVideoAddLine className="text-[26px] text-gray-800 dark:text-white cursor-pointer" />
+              <Link to="/upload">
+                <RiVideoAddLine className="text-[26px] text-gray-800 dark:text-white cursor-pointer" />
+              </Link>
             )}
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogTitle>Upload new video</DialogTitle>
-            <Formik>
-              {({ errors, touched, values, setFieldValue }) => (
-                <Form encType="multipart/form-data">
-                  <div className="my-6">
-                  <label>Title</label>
-                    <Field
-                      type="text"
-                      name="title"
-                      id="title"
-                      className="border py-2 w-full rounded-md px-2 dark:bg-[#4d4d4d]"
-                    />
-                    <ErrorStyle>
-                      <ErrorMessage name="title" />
-                    </ErrorStyle>
-                  </div>
-                  <div className="my-6">
-                  <label>Description</label>
-                    <Field
-                      name="description"
-                      id="description"
-                      as="textarea"
-                      className="border py-2 w-full rounded-md px-2 dark:bg-[#4d4d4d]"
-                    />
-                    <ErrorStyle>
-                      <ErrorMessage name="email" />
-                    </ErrorStyle>
-                  </div>
-                  <div className="my-6">
-                    <label>Thumbnails</label>
-                    <div className="flex gap-2 flex-wrap">
-                      <div
-                        className="border rounded-md w-[80px] h-[80px] flex items-center justify-center cursor-pointer text-gray-500 hover:text-gray-800 hover:border-black/40"
-                        onClick={() => thumbnailsRef.current.click()}
-                      >
-                        <BiImageAdd className=" text-2xl " />
-                        <input
-                          type="file"
-                          name="thumbnails"
-                          id="thumbnail"
-                          ref={thumbnailsRef}
-                          hidden
-                          accept="image/png,image/jpg,image/jpeg"
-                          onChange={(e) =>
-                            handleThumbnailsChange(e, setFieldValue)
-                          }
-                        />
-                      </div>
-                      {previewImages &&
-                        previewImages.map((img, i) => (
-                          <div className=" w-[80px] border relative" key={i}>
-                            <img
-                              src={img}
-                              className="w-full h-[80px] object-contain"
-                            />
-                            <FaTrashAlt
-                              onClick={() => deleteHandler(img)}
-                              className="z-50 absolute bottom-2 right-1 text-red-500 text-sm hover:text-red-600 cursor-pointer"
-                            />
-                          </div>
-                        ))}
-                    </div>
-                    <ErrorStyle>
-                      <ErrorMessage name="phone_num" />
-                    </ErrorStyle>
-                  </div>
-                  <div className="my-6">
-                    <label>Tags</label>
-                    <Field
-                      type="text"
-                      name="tags"
-                      id="tags"
-                      className="border py-2 w-full rounded-md px-2 dark:bg-[#4d4d4d]"
-                    />
-                    <ErrorStyle>
-                      <ErrorMessage name="password" />
-                    </ErrorStyle>
-                  </div>
-                  <div className="my-6">
-                  <label>Video</label>
-                    <div className="flex gap-2 flex-wrap">
-                      <div
-                        className="border rounded-md w-full h-[130px] flex items-center justify-center cursor-pointer text-gray-500 hover:text-gray-800 hover:border-black/40"
-                        onClick={() => videoRef.current.click()}
-                      >
-                        <MdVideoCall className=" text-2xl " />
-                        <input
-                          type="file"
-                          name="video"
-                          id="video"
-                          ref={videoRef}
-                          hidden
-                          onChange={(e) =>
-                            handleVideoChange(e, setFieldValue)
-                          }
-                        />
-                      </div>
-                      </div>
-                  </div>
-                  <div className="my-6">
-                    <button
-                      type="submit"
-                      className="border py-2 w-full rounded-md px-2 bg-[#0E5DDD] text-white hover:bg-[#4779c9]"
-                    >
-                      Upload
-                    </button>
-                  </div>
-                </Form>
-              )}
-            </Formik>
-          </DialogContent>
-        </Dialog>
         <div className="flex items-center space-x-2">
           <Switch
             onClick={toggleColorTheme}

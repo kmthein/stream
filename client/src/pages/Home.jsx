@@ -19,19 +19,23 @@ const Home = () => {
   }, []);
 
   const getUser = async () => {
-    const response = await axios.get(
-      `${import.meta.env.VITE_API}/auth/login/success`,
-      { withCredentials: true }
-    );
-    const { accessToken, profile } = response.data.user;
-    dispatch(setUser(profile._json));
-    dispatch(setAccessToken(accessToken));
-    localStorage.setItem("token", accessToken);
+    const response =
+      await axios.get(`https://api.streamwish.com/api/account/info?key=13788gfrx7kry9hiy0q05
+`);
+    console.log(response.data);
+    // const response = await axios.get(
+    //   `${import.meta.env.VITE_API}/auth/login/success`,
+    //   { withCredentials: true }
+    // );
+    // const { accessToken, profile } = response.data.user;
+    // dispatch(setUser(profile._json));
+    // dispatch(setAccessToken(accessToken));
+    // localStorage.setItem("token", accessToken);
   };
 
-    useEffect(() => {
-        getUser();
-    }, []);
+  useEffect(() => {
+    getUser();
+  }, []);
 
   return (
     <div
