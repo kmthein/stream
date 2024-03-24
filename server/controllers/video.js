@@ -13,18 +13,21 @@ cloudinary.config({
 
 exports.uploadVideo = async (req, res) => {
   const video = req.file;
-  console.log(req.file);
+  const publicId = Date.now() + "_" + Math.round(Math.random() * 1e9) + "_" + video.originalname
   cloudinary.uploader
     .upload(video.path, {
       resource_type: "video",
-      public_id: "stream",
+      public_id: publicId,
     })
     .then((data) => {
-      console.log(data.playback_url);
       return res.status(200).json({
         success: true,
         message: "Video upload completed.",
-        url: data.playback_url,
+        data: {
+          url: data.playback_url,
+          publicId: data.public_id,
+          duration: data.duration
+        },
       });
     })
     .catch((err) => {
@@ -37,9 +40,9 @@ exports.uploadVideo = async (req, res) => {
 };
 
 exports.submitUploadNewVideo = async (req, res) => {
-  // const tags = JSON.parse(req.body.tags);
-  const { title, description, tags, videoUrl } = req.body;
-  // console.log(tags);
+  const { title, description } = req.body;
+  const tags = JSON.parse(req.body.tags);
+  const video = JSON.parse(req.body.video);
   let thumbnails = "";
   try {
   const file = req.file;
@@ -54,7 +57,8 @@ exports.submitUploadNewVideo = async (req, res) => {
       description,
       thumbnails,
       tags,
-      videoUrl
+      video,
+      user: req.userId
     })
     if(videoDoc) {
       return res.status(200).json({
@@ -66,10 +70,46 @@ exports.submitUploadNewVideo = async (req, res) => {
       throw new Error("Video upload failed.")
     }
   } catch (error) {
-    console.log(error);
     return res.status(200).json({
       success: false,
-      message: "Upload failed.",
+      message: error.message,
     });
   }
 };
+
+exports.getAllVideos = async (req, res) => {
+  try {
+    const videoDoc = await Video.find().populate("user", "name");
+    if(!videoDoc) {
+      throw new Error("Videos not found.");
+    }
+    return res.status(200).json({
+      success: true,
+      videos: videoDoc,
+    });
+  } catch (error) {
+    return res.status(200).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+
+exports.getSingleVideo = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const videoDoc = await Video.findById(id).populate("user", "name");
+    if(!videoDoc) {
+      throw new Error("Video not found.");
+    }
+    return res.status(200).json({
+      success: true,
+      video: videoDoc,
+    });
+  } catch (error) {
+    return res.status(200).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}

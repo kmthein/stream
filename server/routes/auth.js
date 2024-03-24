@@ -5,6 +5,8 @@ const User = require("../models/user");
 
 const authController = require("../controllers/auth");
 
+const authMiddleware = require("../middlewares/is-auth");
+
 router.post("/user-register", authController.register);
 
 router.post("/user-login", authController.login);
@@ -52,5 +54,7 @@ router.get("/logout", (req, res) => {
 	req.logout();
 	res.redirect(process.env.CLIENT_URL);
 });
+
+router.get("/get-user", authMiddleware, authController.checkCurrentUser);
 
 module.exports = router;

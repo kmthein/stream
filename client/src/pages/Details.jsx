@@ -30,6 +30,8 @@ import {
   formatISO,
   formatISO9075,
 } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { getSingleVideo } from "@/api/video";
 
 const Details = () => {
   const { menuOpen, darkMode } = useSelector((state) => state.ui);
@@ -41,60 +43,17 @@ const Details = () => {
 
   const { id } = useParams();
 
-  const [video, setVideo] = useState({});
+  const { data } = useQuery({
+    queryKey: ["video", id],
+    queryFn: ({ signal }) => getSingleVideo({ signal, id }),
+  });
+
+  const video = data.video;
+
   const [newVideo, setNewVideo] = useState({});
   const [channelId, setChannelId] = useState(null);
 
-  const getVideoDetails = async () => {
-    const response = await axios.get(
-      `https://youtube.googleapis.com/youtube/v3/videos?part=snippet&part=statistics&id=${id}&key=${
-        import.meta.env.VITE_YOUTUBE_API_KEY
-      }`
-    );
-    setVideo(response.data.items[0]);
-    setChannelId(response.data.items[0].snippet.channelId);
-  };
-
-  useEffect(() => {
-    getVideoDetails();
-    getRelatedVideo();
-  }, []);
-
-  const getSubscriberCount = async () => {
-    const response = await axios.get(
-      `https://youtube.googleapis.com/youtube/v3/channels?part=contentDetails&part=snippet&part=statistics&id=${channelId}&key=${
-        import.meta.env.VITE_YOUTUBE_API_KEY
-      }`
-    );
-    setNewVideo({ ...video, channelDetails: response.data.items[0] });
-  };
-
   const [relatedVideo, setRelatedVideo] = useState([]);
-
-  const getRelatedVideo = async () => {
-    const options = {
-      method: "GET",
-      url: "https://youtube-v31.p.rapidapi.com/search",
-      params: {
-        relatedToVideoId: `${id}`,
-        part: "id,snippet",
-        type: "video",
-        maxResults: "50",
-      },
-      headers: {
-        "X-RapidAPI-Key": "2aa9f3290bmsh892e52f642bf32ep1b2933jsn5309c1d34b86",
-        "X-RapidAPI-Host": "youtube-v31.p.rapidapi.com",
-      },
-    };
-    const response = await axios.request(options);
-    setRelatedVideo(response.data.items);
-  };
-
-  // console.log(relatedVideo);
-
-  useEffect(() => {
-    getSubscriberCount();
-  }, [video]);
 
   const [accordionOpen, setAccordionOpen] = useState(false);
 
@@ -120,27 +79,27 @@ const Details = () => {
     <div className="xl:flex">
       <div className="xl:pt-6 px-0 xl:px-8 xl:w-[70%]">
         <ReactPlayer
-          url={`https://www.youtube.com/watch?v=${id}`}
+          url={video.video.url}
           controls={true}
           width={"100%"}
           height={playerHeight}
           className="rounded-full"
         />
         <div className="px-4 xl:px-0">
-          <h3 className=" font-semibold text-[21px] my-3">{snippet?.title}</h3>
+          <h3 className=" font-semibold text-[21px] my-3">{video?.title}</h3>
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <Avatar
                 size={"md"}
-                src={snippet?.thumbnails.standard.url}
+                src={video?.user?.picture}
                 className="mt-1"
               />
               <div className="ml-4">
                 <p className=" dark:text-white/40 font-medium text-lg">
-                  {snippet?.channelTitle}
+                  {video?.user?.name}
                 </p>
                 <p className="text-sm">
-                  {transformViews(channelDetails?.statistics.subscriberCount)}{" "}
+                  {transformViews(video?.user?.subscribers) || 0}{" "}
                   subscribers
                 </p>
               </div>
@@ -161,20 +120,20 @@ const Details = () => {
               </div>
             </div>
             <div className="my-4 xl:my-0">
-            <div className="flex">
-              <button
-                className={`bg-[#E5E5E5] dark:bg-[#313131] pr-4 pl-2 py-2 flex gap-2 rounded-tl-full rounded-bl-full hover:bg-[#d3d3d3] hover:dark:bg-[#292929]`}
-              >
-                <BiLike className="text-2xl text-black dark:text-white" /> 8.8K
-              </button>
-              <div className="border-r border-[#fff]"></div>
-              <button className="bg-[#E5E5E5] dark:bg-[#313131] px-4 py-2 flex gap-2 rounded-tr-full rounded-br-full hover:bg-[#d3d3d3] hover:dark:bg-[#292929]">
-                <BiDislike className="text-2xl text-black dark:text-white" />
-              </button>
+              <div className="flex">
+                <button
+                  className={`bg-[#E5E5E5] dark:bg-[#313131] pr-4 pl-2 py-2 flex gap-2 rounded-tl-full rounded-bl-full hover:bg-[#d3d3d3] hover:dark:bg-[#292929]`}
+                >
+                  <BiLike className="text-2xl text-black dark:text-white" />{" "}
+                  8.8K
+                </button>
+                <div className="border-r border-[#fff]"></div>
+                <button className="bg-[#E5E5E5] dark:bg-[#313131] px-4 py-2 flex gap-2 rounded-tr-full rounded-br-full hover:bg-[#d3d3d3] hover:dark:bg-[#292929]">
+                  <BiDislike className="text-2xl text-black dark:text-white" />
+                </button>
+              </div>
             </div>
           </div>
-          </div>
-
         </div>
         <div
           className={`bg-[#f3f3f3] ${
@@ -182,10 +141,10 @@ const Details = () => {
           } dark:bg-[#272727] dark:hover:bg-[#3b3b3b] p-4 mt-3 rounded-lg mb-8 mx-4 xl:mx-0`}
         >
           <h4 className="font-medium">
-            {video?.statistics?.viewCount} views{" "}
+          {transformViews(video.view) || 0} {video.view == 0 ? "view" : "views"} •{" "}
             <span className="ml-2">
-              {video?.snippet?.publishedAt
-                ? format(video?.snippet?.publishedAt, "dd MMMM yyyy")
+              {video?.createdAt
+                ? format(video?.createdAt, "dd MMMM yyyy")
                 : "LIVE"}
             </span>
           </h4>
@@ -193,7 +152,7 @@ const Details = () => {
             <AccordionItem value="item-1">
               <AccordionContent>
                 <span className=" whitespace-pre-wrap">
-                  {video?.snippet?.description}
+                  {video?.description}
                 </span>
               </AccordionContent>
               {!accordionOpen ? (

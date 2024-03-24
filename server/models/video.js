@@ -15,8 +15,8 @@ const videoSchema = new Schema({
     tags: {
         type: [String]
     },
-    videoUrl: {
-        type: String,
+    video: {
+        type: Object,
         required: true
     },
     view: {
@@ -29,6 +29,13 @@ const videoSchema = new Schema({
     dislike: {
         type: [String]
     },
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    }
+}, {
+    timestamps: true
 })
 
 const videoModel = model("Video", videoSchema);

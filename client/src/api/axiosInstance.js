@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const queryClient = new QueryClient();
 
-const getUpdateLocalStorage = () => {
+export const getUpdateLocalStorage = () => {
     const updateToken = localStorage.getItem("token");
     return updateToken;
 }

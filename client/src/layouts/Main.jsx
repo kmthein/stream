@@ -27,52 +27,7 @@ const Main = () => {
   const { nextPageToken, searchPageToken } = useSelector(
     (state) => state.video
   );
-
-  const getUser = async () => {
-    const response = await axios.get(
-      `${import.meta.env.VITE_API}/auth/login/success`,
-      { withCredentials: true }
-    );
-    const { accessToken, profile } = response.data.user;
-    dispatch(setUser(profile._json));
-    dispatch(setAccessToken(accessToken));
-  };
-
-  useEffect(() => {
-      getUser();
-  }, [accessToken]);
-
-  const getMyChannelDetails = async () => {
-    const response = await axios.get(
-      `https://youtube.googleapis.com/youtube/v3/channels?part=snippet&mine=true&key=${
-        import.meta.env.VITE_YOUTUBE_API_KEY
-      }`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-    const res = await axios.get(
-      `https://youtube.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=200&mine=true&key=${
-        import.meta.env.VITE_YOUTUBE_API_KEY
-      }`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-    dispatch(
-      setMyChannel({ ...response.data.items[0], subscription: res.data.items })
-    );
-  };
-
-  useEffect(() => {
-    getMyChannelDetails();
-    // getSubscriptionList();
-  }, [accessToken]);
-
+  
   useEffect(() => {
     if (
       darkMode ||
@@ -94,78 +49,7 @@ const Main = () => {
 
   const ref = useRef();
 
-  const [countryCode, setCountryCode] = useState(null);
-
-  // const getRegion = async () => {
-  //   const response = await axios.get(`
-  //   https://youtube.googleapis.com/youtube/v3/i18nRegions?key=${
-  //     import.meta.env.VITE_YOUTUBE_API_KEY
-  //   }`);
-  //   const country = response.data.items.map((d) => {
-  //     return d.id;
-  //   });
-  //   const randomCountry = Math.floor(Math.random() * country.length);
-  //   setCountryCode(country[randomCountry]);
-  // };
-
-  const fetchData = async () => {
-    const response = await axios.get(
-      `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&maxResults=21&key=${
-        import.meta.env.VITE_YOUTUBE_API_KEY
-      }`
-    );
-    dispatch(addHomeVideos(response.data.items));
-    dispatch(setNextPageToken(response.data.nextPageToken));
-  };
-
-  const getHomeVideos = async () => {
-    let prevToken = nextPageToken;
-    const res = await axios.get(
-      `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&maxResults=21&key=${
-        import.meta.env.VITE_YOUTUBE_API_KEY
-      }&pageToken=${prevToken}`
-    );
-    dispatch(setNextPageToken(res.data.nextPageToken));
-    dispatch(addHomeVideos(res.data.items));
-  };
-
-  // useEffect(() => {
-  //   getRegion();
-  // }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [countryCode]);
-
   const { search } = useParams();
-
-  const searchByQuery = async () => {
-    let prevToken = searchPageToken;
-    // const options = {
-    //   method: 'GET',
-    //   url: 'https://youtube-v31.p.rapidapi.com/search',
-    //   params: {
-    //     q: search,
-    //     part: 'snippet,id',
-    //     regionCode: 'US',
-    //     maxResults: '5',
-    //     type: 'video',
-    //     pageToken: prevToken
-    //   },
-    //   headers: {
-    //     'X-RapidAPI-Key': '2aa9f3290bmsh892e52f642bf32ep1b2933jsn5309c1d34b86',
-    //     'X-RapidAPI-Host': 'youtube-v31.p.rapidapi.com'
-    //   }
-    // };
-    // const response = await axios.request(options);
-    const response = await axios.get(`
-    https://youtube.googleapis.com/youtube/v3/search?q=${search}&type=video&key=${
-      import.meta.env.VITE_YOUTUBE_API_KEY
-    }&pageToken=${prevToken}`);
-    console.log(response.data.items);
-    dispatch(addSearchItems(response.data.items));
-    dispatch(setSearchPageToken(response.data.nextPageToken));
-  };
 
   const onScroll = () => {
     if (ref.current) {
@@ -173,13 +57,6 @@ const Main = () => {
       const isNearBottom = scrollTop + clientHeight >= scrollHeight;
 
       if (isNearBottom) {
-        if (nextPageToken) {
-          getHomeVideos();
-        } else if (searchPageToken) {
-          searchByQuery();
-        } else {
-          console.log("");
-        }
       }
     }
   };

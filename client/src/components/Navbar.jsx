@@ -47,7 +47,6 @@ import {
 import axios from "axios";
 import { setAccessToken, setMyChannel } from "@/store/slices/userSlice";
 import { RiVideoAddLine } from "react-icons/ri";
-import { useIsFetching } from '@tanstack/react-query';
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -90,11 +89,8 @@ const Navbar = () => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const isFetching = useIsFetching();
-
   return (
     <div className="flex px-4 w-full justify-between py-3 items-center">
-      <div id="main-header-loading">{isFetching > 0 && <progress />}</div>
       <div className="">
         <Link to="/">
           <img src={IMAGES.logo} alt="logo" className="w-16" />

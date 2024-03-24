@@ -43,7 +43,7 @@ exports.login = async (req, res) => {
         if(!passwordMatch) {
             throw new Error("Email or password is wrong.");
         }
-        const token = await jwt.sign({email: userDoc.email, id: userDoc._id}, process.env.JWT_KEY);
+        const token = await jwt.sign({email: userDoc.email, userId: userDoc._id}, process.env.JWT_KEY);
         const { password: pass, ...other } = userDoc._doc;
         return res.status(201).json({
             success: true,
@@ -58,3 +58,22 @@ exports.login = async (req, res) => {
         })
     }
 }
+
+exports.checkCurrentUser = async (req, res, next) => {
+    try {
+      const userDoc = await User.findById(req.userId);
+      if(!userDoc) {
+        throw new Error("Unauthorized.");
+      }
+      return res.status(200).json({
+        success: true,
+        message: "User authorized.",
+        userDoc
+      })
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: error.message
+      })
+    }
+  }

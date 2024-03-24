@@ -8,8 +8,12 @@ import ReactPlayer from "react-player";
 import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
 import { submitUploadVideo, uploadVideo } from "@/api/video";
-import { ProgressBar } from "react-loader-spinner";
+import { ProgressBar, ThreeDots } from "react-loader-spinner";
 import * as Yup from "yup";
+import { useDispatch, useSelector } from "react-redux";
+import { endLoading, setLoading } from "@/store/slices/uiSlice";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const getBase64 = (file) =>
   new Promise((resolve, reject) => {
@@ -25,6 +29,8 @@ const UploadForm = () => {
 
   const VIDEO_FORMAT = ["video/mp4", "video/mkv"];
 
+  const IMAGE_FORMAT = ["image/png", "image/jpg", "image/jpeg"];
+
   const VideoUploadSchema = Yup.object({
     title: Yup.string()
       .min(3, "Title must be at least 3 characters.")
@@ -32,7 +38,14 @@ const UploadForm = () => {
     description: Yup.string()
       .min(3, "Description must be at least 3 characters.")
       .required("Description is required."),
-    tags: Yup.string().required("Tag must have at least one."),
+    thumbnails: Yup.mixed()
+      .required("Thumbnail is required to upload.")
+      .test(
+        "IMAGE_FORMAT",
+        "File type is not supported.",
+        (value) => !value || IMAGE_FORMAT.includes(value.type)
+      ),
+    // tags: Yup.string().required("Tag must have at least one."),
     // video: Yup.mixed().required("Video file is required to upload.").test(
     //   "VIDEO_FORMAT",
     //   "File type is not supported.",
@@ -55,6 +68,7 @@ const UploadForm = () => {
   const [previewVideo, setPreviewVideo] = useState(null);
   const [video, setVideo] = useState("");
   const [videoUploading, setVideoUploading] = useState(false);
+  const [videoInfo, setVideoInfo] = useState(null);
 
   const { mutate } = useMutation({
     mutationFn: uploadVideo,
@@ -63,7 +77,8 @@ const UploadForm = () => {
     },
     onSuccess: (data) => {
       setVideoUploading(false);
-      setVideo(data.url);
+      setVideo(data.data.url);
+      setVideoInfo(data.data);
     },
   });
 
@@ -102,8 +117,29 @@ const UploadForm = () => {
     video: null,
   };
 
-  const { mutate: submitMutate } = useMutation({
+  const dispatch = useDispatch();
+
+  const navigate = useNavigate();
+
+  const { isLoading } = useSelector((state) => state.ui);
+
+  const {
+    mutate: submitMutate,
+  } = useMutation({
     mutationFn: submitUploadVideo,
+    onMutate: () => {
+      dispatch(setLoading());
+    },
+    onSuccess: (data) => {
+      dispatch(endLoading());
+      console.log(data);
+      if (!data.success) {
+        toast.error(data.message);
+      } else {
+        navigate("/");
+        toast.success("Video uploaded successfully.");
+      }
+    },
   });
 
   const uploadSubmitHandler = async (values) => {
@@ -113,9 +149,8 @@ const UploadForm = () => {
     formData.append("title", values.title);
     formData.append("description", values.description);
     formData.append("thumbnails", values.thumbnails);
-    formData.append("videoUrl", video);
-    // formData.append("tags", JSON.stringify(tags));
-    formData.append("tags", tags);
+    formData.append("video", JSON.stringify(videoInfo));
+    formData.append("tags", JSON.stringify(tags));
     submitMutate({ formData });
   };
 
@@ -189,7 +224,12 @@ const UploadForm = () => {
               </ErrorStyle>
             </div>
             <div className="my-6">
-              <label>Tags <span className="text-black/50 text-sm">(each tag seperate by comma)</span></label>
+              <label>
+                Tags{" "}
+                <span className="text-black/50 text-sm">
+                  (each tag seperate by comma)
+                </span>
+              </label>
               <Field
                 type="text"
                 name="tags"
@@ -244,12 +284,30 @@ const UploadForm = () => {
               </ErrorStyle>
             </div>
             <div className="my-6">
-              <button
-                type="submit"
-                className="border py-2 w-full rounded-md px-2 bg-[#0E5DDD] text-white hover:bg-[#4779c9]"
-              >
-                Upload
-              </button>
+              {!isLoading ? (
+                <button
+                  type="submit"
+                  className="border py-2 w-full rounded-md px-2 h-10 bg-[#0E5DDD] text-white hover:bg-[#4779c9]"
+                >
+                  Upload
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="border py-2 w-full rounded-md px-2 h-10 bg-[#335c9c] text-white flex justify-center items-center"
+                >
+                  <ThreeDots
+                    visible={true}
+                    height="30"
+                    width="30"
+                    color="#fff"
+                    radius="9"
+                    ariaLabel="three-dots-loading"
+                    wrapperStyle={{}}
+                    wrapperClass=""
+                  />
+                </button>
+              )}
             </div>
           </Form>
         )}

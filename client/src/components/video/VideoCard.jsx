@@ -20,45 +20,29 @@ export const transformViews = (value) => {
 const VideoCard = ({ video }) => {
   const { menuOpen } = useSelector((state) => state.ui);
 
-  const [newVideo, setNewVideo] = useState({});
-
-  const getChannelThumbnails = async () => {
-    const id = video.snippet.channelId;
-      const response = await axios.get(`https://youtube.googleapis.com/youtube/v3/channels?part=snippet&id=${id}&key=${import.meta.env.VITE_YOUTUBE_API_KEY}`);
-      const channelThumbnail = response.data.items[0].snippet.thumbnails;
-      const newVd = {...video, channelThumbnail};
-      setNewVideo(newVd);
-  }
-
-  const { snippet, statistics, channelThumbnail, id } = newVideo;
-
-  useEffect(() => {
-    getChannelThumbnails();
-  }, []);
-
   return (
     <div className={`${menuOpen ? "w-[320px] 2xl:w-[295px]" : "w-full md:w-[340px] lg:w-[460px] xl:w-[390px] 2xl:w-[330px]"}`}>
-      <Link to={`/watch/${id}`}>
+      <Link to={`/watch/${video._id}`}>
       <img
-        src={snippet?.thumbnails.high.url}
+        src={video?.thumbnails}
         alt="thumbnail"
         className={`md:rounded-lg ${menuOpen ? "w-[320px] 2xl:w-[295px] 2xl:h-[175px] h-[220px] 2xl:[280px] object-cover" : "w-full md:w-[340px] lg:w-[460px] h-[220px] lg:h-[250px] xl:h-[180px] 2xl:[250px] object-cover 2xl:w-[330px]"} cursor-pointer`}
       />
       </Link>
       <div className={`flex gap-2 mt-2 px-2`}>
-        <Avatar size={"sm"} src={channelThumbnail?.high.url} className="mt-1" />
+        <Avatar size={"sm"} src={video?.user?.picture} className="mt-1" />
         <div>
           <h3 className=" font-medium cursor-pointer">
-            {snippet?.title.trim().slice(0, 70)}
-            {snippet?.title.trim().length > 70 && "..."}
+            {video.title.trim().slice(0, 70)}
+            {video.title.trim().length > 70 && "..."}
           </h3>
           <p className="text-black/50 dark:text-white/40 font-medium">
-            {snippet?.channelTitle}
+            {video.user?.name}
           </p>
           <p className="text-black/50 dark:text-white/40 font-medium flex gap-2 items-center">
-            {transformViews(statistics?.viewCount) || 0} views •{" "}
-            {snippet?.publishedAt ? (
-              formatDistanceToNow(snippet?.publishedAt)
+            {transformViews(video.view) || 0} {video.view == 0 ? "view" : "views"} •{" "}
+            {video?.createdAt ? (
+              formatDistanceToNow(video.createdAt)
             ) : (
               <>
                 <svg

@@ -1,6 +1,8 @@
+import { getAllVideos } from "@/api/video";
 import VideoCard from "@/components/video/VideoCard";
 import { setAccessToken, setUser } from "@/store/slices/userSlice";
 import { addHomeVideos, setNextPageToken } from "@/store/slices/videoSlice";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,28 +16,10 @@ const Home = () => {
 
   const { accessToken } = useSelector((state) => state.user);
 
-  useEffect(() => {
-    return () => dispatch(setNextPageToken(""));
-  }, []);
-
-  const getUser = async () => {
-    const response =
-      await axios.get(`https://api.streamwish.com/api/account/info?key=13788gfrx7kry9hiy0q05
-`);
-    console.log(response.data);
-    // const response = await axios.get(
-    //   `${import.meta.env.VITE_API}/auth/login/success`,
-    //   { withCredentials: true }
-    // );
-    // const { accessToken, profile } = response.data.user;
-    // dispatch(setUser(profile._json));
-    // dispatch(setAccessToken(accessToken));
-    // localStorage.setItem("token", accessToken);
-  };
-
-  useEffect(() => {
-    getUser();
-  }, []);
+  const { data } = useQuery({
+    queryKey: ["videos"],
+    queryFn: ({signal}) => getAllVideos({ signal })
+  })
 
   return (
     <div
@@ -43,9 +27,11 @@ const Home = () => {
         menuOpen && "ml-8 mr-0"
       }`}
     >
-      {homeVideos &&
-        homeVideos.length > 0 &&
-        homeVideos.map((video, i) => <VideoCard video={video} key={i} />)}
+      {data?.videos &&
+        data?.videos.length > 0 ?
+        data?.videos.map((video, i) => <VideoCard video={video} key={i} />) : (
+          <p>Video Not Found.</p>
+        )}
     </div>
   );
 };
