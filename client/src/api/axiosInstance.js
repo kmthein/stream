@@ -1,4 +1,7 @@
+import { QueryClient } from "@tanstack/react-query";
 import axios from "axios";
+
+export const queryClient = new QueryClient();
 
 const getUpdateLocalStorage = () => {
     const updateToken = localStorage.getItem("token");

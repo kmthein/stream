@@ -11,6 +11,8 @@ import SearchResult from "./pages/SearchResult";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import UploadVideo from "./pages/UploadVideo";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./api/axiosInstance";
 
 const App = () => {
   const router = createBrowserRouter([
@@ -20,48 +22,52 @@ const App = () => {
       children: [
         {
           index: true,
-          element: <Home />
+          element: <Home />,
         },
         {
           path: "/watch/:id",
-          element: <Details />
+          element: <Details />,
         },
         {
           path: "/subscriptions",
-          element: <Subscriptions />
+          element: <Subscriptions />,
         },
         {
           path: "/my-channel",
-          element: <MyChannel />
+          element: <MyChannel />,
         },
         {
           path: "/history",
-          element: <History />
+          element: <History />,
         },
         {
           path: "/like-video",
-          element: <LikeVideo />
+          element: <LikeVideo />,
         },
         {
           path: "/results/search/:search",
-          element: <SearchResult />
+          element: <SearchResult />,
         },
         {
           path: "/login",
-          element: <Login />
+          element: <Login />,
         },
         {
           path: "/register",
-          element: <Register />
+          element: <Register />,
         },
         {
           path: "/upload",
-          element: <UploadVideo />
-        }
-      ]
+          element: <UploadVideo />,
+        },
+      ],
     },
   ]);
-  return <RouterProvider router={router} />;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  );
 };
 
 export default App;

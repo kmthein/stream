@@ -81,3 +81,10 @@
   font-family: 'Roboto', sans-serif;
   font-size: 15px;
 }
+
+#main-header-loading {
+  height: 2rem;
+  margin-bottom: -2rem;
+  text-align: center;
+  accent-color: #e30d7c;
+}

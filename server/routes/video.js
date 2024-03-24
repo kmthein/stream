@@ -12,6 +12,8 @@ const storageConfigure = multer.diskStorage({
 
 const upload = multer({ storage: storageConfigure });
 
-router.post("/upload", upload.single("thumbnails"), upload.single("video"), productController.uploadVideo)
+router.post("/upload", upload.single("video"), productController.uploadVideo)
+
+router.post("/new-video", upload.single("thumbnails"), productController.submitUploadNewVideo)
 
 module.exports = router;
