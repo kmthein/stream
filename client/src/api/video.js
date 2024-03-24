@@ -16,12 +16,12 @@ export const uploadVideo = async ({ video }) => {
 };
 
 export const submitUploadVideo = async ({ formData }) => {
-  console.log(formData);
   try {
     const response = await axios.post(
       `${import.meta.env.VITE_API}/video/new-video`,
       formData
     );
+    console.log(response.data);
     return response.data;
   } catch (error) {
     return error.message;

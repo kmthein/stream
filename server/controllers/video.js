@@ -3,6 +3,8 @@ const fs = require("fs");
 const { v2: cloudinary } = require("cloudinary");
 require("dotenv").config();
 
+const Video = require("../models/video");
+
 cloudinary.config({
   cloud_name: "dvos6jlbp",
   api_key: "941877997462755",
@@ -35,19 +37,39 @@ exports.uploadVideo = async (req, res) => {
 };
 
 exports.submitUploadNewVideo = async (req, res) => {
-  console.log(req.body);
-  console.log(req.file);
+  // const tags = JSON.parse(req.body.tags);
+  const { title, description, tags, videoUrl } = req.body;
+  // console.log(tags);
+  let thumbnails = "";
+  try {
   const file = req.file;
-  cloudinary.uploader.upload(
-    file.path,
-    { public_id: "thumbnail" }).then((data) => {
-        console.log(data.secure_url);
-      })
-      .catch((err) => {
-        console.err(err);
-        return res.status(200).json({
-          success: false,
-          message: "Upload failed.",
-        });
+    if (file) {
+      const photoData = await cloudinary.uploader.upload(file.path, {
+        public_id: "thumbnail",
       });
+      thumbnails = photoData.secure_url;
+    }
+    const videoDoc = await Video.create({
+      title,
+      description,
+      thumbnails,
+      tags,
+      videoUrl
+    })
+    if(videoDoc) {
+      return res.status(200).json({
+        success: true,
+        message: "Video upload completed.",
+        data: videoDoc,
+      });
+    } else {
+      throw new Error("Video upload failed.")
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(200).json({
+      success: false,
+      message: "Upload failed.",
+    });
+  }
 };

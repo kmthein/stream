@@ -23,7 +23,7 @@ const UploadForm = () => {
   const thumbnailsRef = useRef();
   const videoRef = useRef();
 
-  const VIDEO_FORMAT = ["video/*"];
+  const VIDEO_FORMAT = ["video/mp4", "video/mkv"];
 
   const VideoUploadSchema = Yup.object({
     title: Yup.string()
@@ -32,12 +32,12 @@ const UploadForm = () => {
     description: Yup.string()
       .min(3, "Description must be at least 3 characters.")
       .required("Description is required."),
-    tags: Yup.array().required("Tag must have at least one."),
-    video: Yup.mixed().required("Video file is required to upload.").test(
-      "VIDEO_FORMAT",
-      "File type is not supported.",
-      (value) => !value || VIDEO_FORMAT.includes(value.type)
-    ),
+    tags: Yup.string().required("Tag must have at least one."),
+    // video: Yup.mixed().required("Video file is required to upload.").test(
+    //   "VIDEO_FORMAT",
+    //   "File type is not supported.",
+    //   (value) => !value || VIDEO_FORMAT.includes(value.type)
+    // ),
   });
 
   const [previewImages, setPreviewImages] = useState(null);
@@ -98,21 +98,24 @@ const UploadForm = () => {
     title: "",
     description: "",
     thumbnails: null,
-    tags: null,
+    tags: [],
     video: null,
   };
 
   const { mutate: submitMutate } = useMutation({
     mutationFn: submitUploadVideo,
   });
+
   const uploadSubmitHandler = async (values) => {
+    const split = values.tags.split(",");
+    const tags = split.map((tag) => tag.trim());
     const formData = new FormData();
-    for (let value in values) {
-      formData.append(value, values[value]);
-    }
-    formData.delete("video");
-    formData.append("thumbnails", images);
+    formData.append("title", values.title);
+    formData.append("description", values.description);
+    formData.append("thumbnails", values.thumbnails);
     formData.append("videoUrl", video);
+    // formData.append("tags", JSON.stringify(tags));
+    formData.append("tags", tags);
     submitMutate({ formData });
   };
 
@@ -186,7 +189,7 @@ const UploadForm = () => {
               </ErrorStyle>
             </div>
             <div className="my-6">
-              <label>Tags</label>
+              <label>Tags <span className="text-black/50 text-sm">(each tag seperate by comma)</span></label>
               <Field
                 type="text"
                 name="tags"
